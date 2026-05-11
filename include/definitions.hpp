@@ -15,19 +15,26 @@ using Quantity = std::uint64_t;
 
 enum class Side {
     Buy,
-    Sell
+    Sell,
 };
 
 enum class OrderType {
     Limit,
-    Market
+    Market,
 };
 
 enum class OrderStatus {
     Open,
     PartiallyFilled,
     Filled,
-    Canceled
+    Canceled,
+};
+
+enum class TimeInForce {
+    Day,
+    GTC, // good-till-canceled
+    IOC, // immediate-or-cancel
+    FOK, // fill-or-kill
 };
 
 struct Order {
@@ -36,6 +43,7 @@ struct Order {
 
     Side side;
     OrderType order_type;
+    TimeInForce time_in_force = TimeInForce::Day;
     std::optional<PriceTicks> price_ticks;
     Quantity quantity;
 
@@ -43,6 +51,7 @@ struct Order {
 
     OrderStatus status = OrderStatus::Open;
     Quantity remaining_quantity = quantity;
+    std::optional<Timestamp> TTL;
 
     Timestamp timestamp = std::chrono::system_clock::now();
 
@@ -67,8 +76,25 @@ struct Order {
         status == OrderStatus::PartiallyFilled;
     }
 
+    bool is_expired() const {
+        Timestamp now = std::chrono::system_clock::now();
+        return now > TTL;
+    };
+
     bool is_filled() const {
         return remaining_quantity == 0;
+    }
+
+    bool is_GTC() const {
+        return time_in_force == TimeInForce::Day;
+    }
+
+    bool is_IOC() const {
+        return time_in_force == TimeInForce::IOC;
+    } 
+
+    bool is_FOK() const {
+        return time_in_force == TimeInForce::FOK;
     }
 
     void fill(Quantity fill_quantity) {

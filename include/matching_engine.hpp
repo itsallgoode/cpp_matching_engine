@@ -8,6 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
+using BookMap = std::unordered_map<std::string, OrderBook>;
+using BookIterator = BookMap::iterator;
+using ConstBookIterator = const BookMap::iterator;
+
 class MatchingEngine {
 public:
     OrderAck process_order(Order order);
@@ -29,9 +33,12 @@ public:
     const std::vector<Trade>& trades() const;
 
 private:
-    std::unordered_map<std::string, OrderBook> books_;
+    BookMap books_;
     std::vector<Trade> trades_;
 
     OrderId next_order_id_ = 1;
     TradeId next_trade_id_ = 1;
+
+private:
+    std::optional<BookIterator> find_book(std::string symbol);
 };

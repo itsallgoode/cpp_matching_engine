@@ -1,4 +1,5 @@
 #include "matching_engine.hpp"
+#include "definitions.hpp"
 #include <cstddef>
 
 OrderAck MatchingEngine::process_order(Order order) {
@@ -90,4 +91,14 @@ std::optional<double> MatchingEngine::mid_price(const std::string& symbol) {
 
 const std::vector<Trade>& MatchingEngine::trades() const {
     return trades_;
+}
+
+std::optional<BookIterator> MatchingEngine::find_book(std::string symbol) {
+    auto it = books_.find(symbol);
+
+    if (it == books_.end()) {
+        return std::nullopt;
+    }
+
+    return it;
 }

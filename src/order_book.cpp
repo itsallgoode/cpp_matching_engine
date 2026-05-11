@@ -23,13 +23,34 @@ std::vector<Trade> OrderBook::process_order(Order order, TradeId&  next_trade_id
         throw std::invalid_argument("Invalid order side");
     }
 
+    if (order.is_market() && order.is_active()) {
+        order.status = OrderStatus::Canceled;
+    }
+
+    switch (order.time_in_force) {
+        case TimeInForce::Day:
+
+            break;
+        
+        case TimeInForce::FOK:
+
+            break;
+        
+        case TimeInForce::GTC:
+
+            break;
+        
+        case TimeInForce::IOC:
+
+            break;
+    }
+
+
     if (order.is_limit() && order.is_active()) {
         add_to_book(order);
     }
 
-    if (order.is_market() && order.is_active()) {
-        order.status = OrderStatus::Canceled;
-    }
+
 
     return trades;
 }  
@@ -53,7 +74,7 @@ std::optional<PriceTicks> OrderBook::best_bid() {
         PriceTicks price = it->first;
         auto& queue = it->second;
 
-        while (!queue.empty() && !queue.front().is_active()) {
+        while ((!queue.empty() && !queue.front().is_active()) || queue.front().is_expired()) {
             queue.pop_front();
         }
 
@@ -74,7 +95,7 @@ std::optional<PriceTicks> OrderBook::best_ask() {
         PriceTicks price = it->first;
         auto& queue = it->second;
 
-        while (!queue.empty() && !queue.front().is_active()) {
+        while ((!queue.empty() && !queue.front().is_active()) || (queue.front().is_expired())) {
             queue.pop_front();
         }
 
@@ -202,7 +223,7 @@ std::vector<std::pair<PriceTicks, Quantity>> OrderBook::bid_levels(std::size_t l
         Quantity quantity = 0;
 
         for (const auto& order : deque) {
-            if (order.is_active()) {
+            if (order.is_active() && !order.is_expired()) {
                 quantity += order.remaining_quantity;
             }
         }
@@ -223,7 +244,7 @@ std::vector<std::pair<PriceTicks, Quantity>> OrderBook::ask_levels(std::size_t l
         Quantity quantity = 0;
 
         for (const auto& order : deque) {
-            if (order.is_active()) {
+            if (order.is_active() && !order.is_expired()) {
                 quantity += order.remaining_quantity;
             }
         }

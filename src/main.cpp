@@ -321,7 +321,7 @@ void print_results(const std::vector<BenchmarkResult>& results) {
 }
 
 int main() {
-    constexpr std::size_t n = 1'000'000;
+    constexpr std::size_t n = 10'000'000;
 
     try {
         std::vector<BenchmarkResult> results;
